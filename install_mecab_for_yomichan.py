@@ -113,6 +113,7 @@ def manifest_get(browser, messaging_host_path, additional_ids=[]):
     return json.dumps(manifest, indent=4)
 
 def manifest_install_file(manifest, path):
+    os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, MANIFEST_FILENAME), 'w') as f:
         f.write(manifest)
 
