@@ -46,19 +46,20 @@ def send_message(message_content):
 
 
 class Mecab:
-    output_formats = {
+    dictionaries = {
         'ipadic': ['pos', 'pos2', '_', '_', '_', '_', 'expression', 'reading', 'pron'],
         'ipadic-neologd': ['pos', 'pos2', '_', '_', '_', '_', 'expression', 'reading', 'pron'],
         'unidic-mecab-translate': [
             'pos', 'pos2', 'pos3', 'pos4', 'inflection_type', 'inflection_form',
-            'reading', 'expression', '_', 'pron'
+            'lemma_reading', 'lemma', 'expression', 'reading', 'expression_base', 'reading_base'
         ],
     }
     skip_patt = r'[\s・]'
 
-    def __init__(self, output_format):
-        self.output_format = Mecab.output_formats[output_format]
-        args = ['mecab', '-d', os.path.join(DIR, 'data', output_format), '-r', os.path.join(DIR, 'mecabrc')]
+    def __init__(self, dictionary_name):
+        self.dictionary_name = dictionary_name
+        self.dictionary = Mecab.dictionaries[dictionary_name]
+        args = ['mecab', '-d', os.path.join(DIR, 'data', dictionary_name), '-r', os.path.join(DIR, 'mecabrc')]
         self.process = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -88,7 +89,7 @@ class Mecab:
                         output_part_info_parsed = ['' if i == '*'
                                                    else re.sub(Mecab.skip_patt, '', i.split('-')[0])
                                                    for i in output_part_info.split(',')]
-                        parsed_part.update(zip(self.output_format, output_part_info_parsed))
+                        parsed_part.update(zip(self.dictionary, output_part_info_parsed))
                         parsed_line.append(parsed_part)
                     except Exception as e:
                         print(e, file=sys.stderr)
@@ -97,7 +98,7 @@ class Mecab:
 
     def gen_dummy_output(self, text):
         output = {'source': text, 'expression': text, 'reading': text}
-        for key in self.output_format:
+        for key in self.dictionary:
             if key not in output:
                 output[key] = ''
         return output
@@ -108,13 +109,51 @@ class Mecab:
         self.process.stdout.close()
 
 
+class MecabOrchestrator:
+    def __init__(self):
+        self.mecabs = {}
+        self.start_mecabs()
+
+    def parse(self, text, dictionaries=None, retry=True):
+        try:
+            output = {}
+            if not dictionaries:
+                for mecab_name in self.mecabs:
+                    output[mecab_name] = self.mecabs[mecab_name].parse(text)
+            else:
+                for dictionary_name in dictionaries:
+                    output[dictionary_name] = self.mecabs[dictionary_name].parse(text)
+            return output
+        except Exception as e:
+            print(e, file=sys.stderr)
+            if retry:
+                self.reload_mecabs()
+                self.parse(text, dictionaries, False)
+
+    def reload_mecabs(self):
+        self.stop_mecabs()
+        self.start_mecabs()
+
+    def stop_mecabs(self):
+        for mecab_name in list(self.mecabs):
+            mecab = self.mecabs[mecab_name]
+            mecab.process.kill()
+            del self.mecabs[mecab_name]
+
+    def start_mecabs(self):
+        for dictionary_name in Mecab.dictionaries:
+            if os.path.isdir(os.path.join(DIR, 'data', dictionary_name)):
+                self.mecabs[dictionary_name] = Mecab(dictionary_name)
+
+
 def main():
-    mecab = Mecab('ipadic')
+    mecabs = MecabOrchestrator()
     while True:
         msg = get_message()
         if msg['action'] == 'parse_text':
             text = msg['params']['text']
-            response = mecab.parse(text)
+            dictionaries = msg['params'].get('dictionaries')
+            response = mecabs.parse(text, dictionaries)
             send_message({
                 'sequence': msg['sequence'],
                 'data': response,

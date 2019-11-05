@@ -92,6 +92,14 @@ DICTIONARY_DATA = {
     'ipadic': {
         'url': 'https://github.com/siikamiika/yomichan-mecab-installer/releases/download/ipadic-1/ipadic.zip',
         'compression': 'zip',
+        'size': '51M',
+        'description': 'A basic dictionary',
+    },
+    'unidic-mecab-translate': {
+        'url': 'https://github.com/siikamiika/unidic-mecab-translate/releases/download/1.3/unidic-mecab-translate-1.3.zip',
+        'compression': 'zip',
+        'size': '191M',
+        'description': 'A dictionary that prefers shorter words to longer ones, is usually more accurate, and shows pronunciation instead of reading',
     }
 }
 
@@ -165,7 +173,8 @@ def main():
     if input('Install a MeCab dictionary? (Y/n): ').lower() in ['', 'y']:
         mecab_dictionaries = list(DICTIONARY_DATA)
         for i, dict_name in enumerate(mecab_dictionaries):
-            print('{}: {}'.format(i + 1, dict_name))
+            dict_data = DICTIONARY_DATA[dict_name]
+            print('{}: {} [{}] - {}'.format(i + 1, dict_name, dict_data['size'], dict_data['description']))
         dictionary = mecab_dictionaries[int(input('Choose dictionary: ')) - 1]
         dictionary_data = DICTIONARY_DATA[dictionary]
         download_dict(dictionary_data['url'], 'zip')
