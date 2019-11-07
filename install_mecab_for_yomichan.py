@@ -178,7 +178,7 @@ def main():
     if platform_data['platform'] == 'windows':
         script_path = os.path.join(DIR, 'mecab.bat')
         with open(script_path, 'w') as f:
-            f.write('@echo off\n\npython -u "{}"'.format(
+            f.write('@echo off\r\n\r\npython -u "{}"'.format(
                 script_path.replace('\\', '\\\\')
             ))
     manifest = manifest_get(browser, script_path, additional_extension_ids)
