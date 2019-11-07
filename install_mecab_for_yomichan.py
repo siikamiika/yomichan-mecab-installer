@@ -138,7 +138,7 @@ def manifest_get(browser, messaging_host_path, additional_ids=[]):
 
 def manifest_install_file(manifest, path):
     os.makedirs(path, exist_ok=True)
-    with open(os.path.join(path, MANIFEST_FILENAME + '.json'), 'w') as f:
+    with open(os.path.join(path, NAME + '.json'), 'w') as f:
         f.write(manifest)
 
 def download_dict(url, compression):
