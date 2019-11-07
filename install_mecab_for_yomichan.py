@@ -125,7 +125,7 @@ def platform_data_get():
         data['platform'] = platform_name
         if sys.platform in data['platform_aliases']:
             return data
-        raise Exception('Unsupported platform: {}'.format(sys.platform))
+    raise Exception('Unsupported platform: {}'.format(sys.platform))
 
 def manifest_get(browser, messaging_host_path, additional_ids=[]):
     manifest = copy.deepcopy(MANIFEST_TEMPLATE)
