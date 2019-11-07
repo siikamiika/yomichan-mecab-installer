@@ -25,7 +25,7 @@ import zipfile
 
 DIR = os.path.realpath(os.path.dirname(__file__))
 
-MANIFEST_FILENAME = 'yomichan_mecab.json'
+NAME = 'yomichan_mecab'
 
 MANIFEST_TEMPLATE = {
     'name': 'yomichan_mecab',
@@ -68,6 +68,22 @@ PLATFORM_DATA = {
     },
     'windows': {
         'platform_aliases': ['win32', 'cygwin'],
+        'manifest_install_data': {
+            'firefox': {
+                'methods': ['file', 'registry'],
+                'path': DIR,
+                'registry_path': 'SOFTWARE\\Mozilla\\NativeMessagingHosts',
+            },
+            'chrome': {
+                'methods': ['file', 'registry'],
+                'path': DIR,
+                'registry_path': 'SOFTWARE\\Google\\Chrome\\NativeMessagingHosts',
+            },
+            'chromium': {
+                'methods': ['file', 'registry'],
+                'path': DIR,
+            },
+        }
     },
     'mac': {
         'platform_aliases': ['darwin'],
@@ -122,7 +138,7 @@ def manifest_get(browser, messaging_host_path, additional_ids=[]):
 
 def manifest_install_file(manifest, path):
     os.makedirs(path, exist_ok=True)
-    with open(os.path.join(path, MANIFEST_FILENAME), 'w') as f:
+    with open(os.path.join(path, MANIFEST_FILENAME + '.json'), 'w') as f:
         f.write(manifest)
 
 def download_dict(url, compression):
@@ -158,15 +174,28 @@ def main():
         if not extension_id:
             break
         additional_extension_ids.append(extension_id)
-    manifest = manifest_get(
-        browser,
-        os.path.join(DIR, 'mecab.py'),
-        additional_extension_ids
-    )
+    script_path = os.path.join(DIR, 'mecab.py')
+    if platform_data['platform'] == 'windows':
+        script_path = os.path.join(DIR, 'mecab.bat')
+        with open(script_path, 'w') as f:
+            f.write('@echo off\n\npython -u "{}"'.format(
+                script_path.replace('\\', '\\\\')
+            ))
+    manifest = manifest_get(browser, script_path, additional_extension_ids)
     manifest_install_data = platform_data['manifest_install_data'][browser]
     for method in manifest_install_data['methods']:
         if method == 'file':
             manifest_install_file(manifest, manifest_install_data['path'])
+        if method == 'registry':
+            import winreg
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER,
+                             manifest_install_data['registry_path'])
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                          manifest_install_data['registry_path'],
+                                          0, winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, NAME, 0, winreg.REG_SZ,
+                              manifest_install_data['path'])
+            winreg.CloseKey(registry_key)
 
     # install dictionaries
     print()
