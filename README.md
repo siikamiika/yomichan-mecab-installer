@@ -9,7 +9,7 @@ If you are running Mac, first install [Homebrew](https://brew.sh/), as it is use
 
 1. Install Python 2 or 3
     - **Windows**: https://www.python.org/downloads/
-    - **Mac**: Python 2 will be deprecated in 10.16. To install Python 3, run `brew install python3`
+    - **Mac**: Python 2 is deprecated and will be removed in 10.16. To install Python 3, run `brew install python3`
     - **Linux**: Python is usually included with a Linux distribution
 1. If you aren't using Windows, install MeCab separately
     - **Mac**: run `brew install mecab`
