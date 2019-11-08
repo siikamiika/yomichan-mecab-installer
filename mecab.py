@@ -33,21 +33,40 @@ elif sys.version_info[0] == 2:
 DIR = os.path.realpath(os.path.dirname(__file__))
 
 
+def read_stdin(length):
+    if sys.version_info[0] == 3:
+        return sys.stdin.buffer.read(length)
+    elif sys.version_info[0] == 2:
+        return sys.stdin.read(length)
+
+def write_stdout(data):
+    if sys.version_info[0] == 3:
+        return sys.stdout.buffer.write(data)
+    elif sys.version_info[0] == 2:
+        return sys.stdout.write(data)
+
+def flush_stdout():
+    if sys.version_info[0] == 3:
+        sys.stdout.buffer.flush()
+    elif sys.version_info[0] == 2:
+        sys.stdout.flush()
+
+
 def get_message():
-    raw_length = sys.stdin.read(4)
+    raw_length = read_stdin(4)
     if not raw_length:
         sys.exit(0)
     message_length = struct.unpack('@I', raw_length)[0]
-    message = sys.stdin.read(message_length).decode('utf-8')
+    message = read_stdin(message_length).decode('utf-8')
     return json.loads(message)
 
 
 def send_message(message_content):
     encoded_content = json.dumps(message_content).encode('utf-8')
     encoded_length = struct.pack('@I', len(encoded_content))
-    sys.stdout.write(encoded_length)
-    sys.stdout.write(encoded_content)
-    sys.stdout.flush()
+    write_stdout(encoded_length)
+    write_stdout(encoded_content)
+    flush_stdout()
 
 
 class Mecab:
