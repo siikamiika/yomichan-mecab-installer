@@ -20,8 +20,12 @@ import sys
 import os
 import json
 import copy
-import urllib.request
 import zipfile
+if sys.version_info[0] == 3:
+    from urllib.request import urlretrieve
+elif sys.version_info[0] == 2:
+    from urllib import urlretrieve
+    input = raw_input
 
 DIR = os.path.realpath(os.path.dirname(__file__))
 
@@ -72,12 +76,12 @@ PLATFORM_DATA = {
             'firefox': {
                 'methods': ['file', 'registry'],
                 'path': DIR,
-                'registry_path': 'SOFTWARE\\Mozilla\\NativeMessagingHosts',
+                'registry_path': 'SOFTWARE\\Mozilla\\NativeMessagingHosts\\{}'.format(NAME),
             },
             'chrome': {
                 'methods': ['file', 'registry'],
                 'path': DIR,
-                'registry_path': 'SOFTWARE\\Google\\Chrome\\NativeMessagingHosts',
+                'registry_path': 'SOFTWARE\\Google\\Chrome\\NativeMessagingHosts\\{}'.format(NAME),
             },
             'chromium': {
                 'methods': ['file', 'registry'],
@@ -137,14 +141,16 @@ def manifest_get(browser, messaging_host_path, additional_ids=[]):
     return json.dumps(manifest, indent=4)
 
 def manifest_install_file(manifest, path):
-    os.makedirs(path, exist_ok=True)
+    try: os.makedirs(path)
+    except: pass
     with open(os.path.join(path, NAME + '.json'), 'w') as f:
         f.write(manifest)
 
 def download_dict(url, compression):
     print('Downloading...')
-    os.makedirs('data', exist_ok=True)
-    tmp_path, _ = urllib.request.urlretrieve(url)
+    try: os.makedirs('data')
+    except: pass
+    tmp_path, _ = urlretrieve(url)
     if compression == 'zip':
         extract_zip(tmp_path, 'data')
     print('Done!')
@@ -165,7 +171,7 @@ def main():
     browser = browsers[int(input('Choose browser: ')) - 1]
 
     # generate manifest
-    print()
+    print('')
     print('Using default Yomichan extension ID for {}.'.format(browser))
     print('Add more extension IDs, or press enter to continue')
     additional_extension_ids = []
@@ -176,29 +182,34 @@ def main():
         additional_extension_ids.append(extension_id)
     script_path = os.path.join(DIR, 'mecab.py')
     if platform_data['platform'] == 'windows':
-        script_path = os.path.join(DIR, 'mecab.bat')
-        with open(script_path, 'w') as f:
-            f.write('@echo off\r\n\r\npython -u "{}"'.format(
-                script_path.replace('\\', '\\\\')
+        bat_path = os.path.join(DIR, 'mecab_yomichan.bat')
+        with open(bat_path, 'w') as f:
+            f.write('@echo off\n"{}" -u "{}"'.format(
+                sys.executable,
+                script_path
             ))
+        script_path = bat_path
     manifest = manifest_get(browser, script_path, additional_extension_ids)
     manifest_install_data = platform_data['manifest_install_data'][browser]
     for method in manifest_install_data['methods']:
         if method == 'file':
             manifest_install_file(manifest, manifest_install_data['path'])
         if method == 'registry':
-            import winreg
+            if sys.version_info[0] == 3:
+                import winreg
+            elif sys.version_info[0] == 2:
+                import _winreg as winreg
             winreg.CreateKey(winreg.HKEY_CURRENT_USER,
                              manifest_install_data['registry_path'])
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                                           manifest_install_data['registry_path'],
                                           0, winreg.KEY_WRITE)
-            winreg.SetValueEx(registry_key, NAME, 0, winreg.REG_SZ,
-                              manifest_install_data['path'])
+            winreg.SetValueEx(registry_key, '', 0, winreg.REG_SZ,
+                              os.path.join(manifest_install_data['path'], NAME + '.json'))
             winreg.CloseKey(registry_key)
 
     # install dictionaries
-    print()
+    print('')
     if input('Install a MeCab dictionary? (Y/n): ').lower() in ['', 'y']:
         mecab_dictionaries = list(DICTIONARY_DATA)
         for i, dict_name in enumerate(mecab_dictionaries):

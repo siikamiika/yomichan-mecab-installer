@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import json
 import sys
 import os
@@ -23,26 +25,29 @@ import re
 import struct
 import subprocess
 import threading
-import queue
+if sys.version_info[0] == 3:
+    import queue
+elif sys.version_info[0] == 2:
+    import Queue as queue
 
 DIR = os.path.realpath(os.path.dirname(__file__))
 
 
 def get_message():
-    raw_length = sys.stdin.buffer.read(4)
+    raw_length = sys.stdin.read(4)
     if not raw_length:
         sys.exit(0)
     message_length = struct.unpack('@I', raw_length)[0]
-    message = sys.stdin.buffer.read(message_length).decode('utf-8')
+    message = sys.stdin.read(message_length).decode('utf-8')
     return json.loads(message)
 
 
 def send_message(message_content):
     encoded_content = json.dumps(message_content).encode('utf-8')
     encoded_length = struct.pack('@I', len(encoded_content))
-    sys.stdout.buffer.write(encoded_length)
-    sys.stdout.buffer.write(encoded_content)
-    sys.stdout.buffer.flush()
+    sys.stdout.write(encoded_length)
+    sys.stdout.write(encoded_content)
+    sys.stdout.flush()
 
 
 class Mecab:
@@ -54,7 +59,7 @@ class Mecab:
             'lemma_reading', 'lemma', 'expression', 'reading', 'expression_base', 'reading_base'
         ],
     }
-    skip_patt = r'[\s・]'
+    skip_patt = u'[\s\u30fb]'
 
     def __init__(self, dictionary_name):
         self.dictionary_name = dictionary_name
@@ -76,7 +81,7 @@ class Mecab:
         parsed_lines = []
         for text_line in text.splitlines():
             parsed_line = []
-            for text_line_part in re.findall(r'{0}|.*?(?={0})|.*'.format(Mecab.skip_patt), text_line):
+            for text_line_part in re.findall(u'{0}|.*?(?={0})|.*'.format(Mecab.skip_patt), text_line):
                 if re.match(Mecab.skip_patt, text_line_part):
                     parsed_line.append(self.gen_dummy_output(text_line_part))
                     continue
