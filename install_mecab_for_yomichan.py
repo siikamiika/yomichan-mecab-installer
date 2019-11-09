@@ -116,7 +116,7 @@ DICTIONARY_DATA = {
         'description': 'A basic dictionary',
     },
     'unidic-mecab-translate': {
-        'url': 'https://github.com/siikamiika/unidic-mecab-translate/releases/download/1.3/unidic-mecab-translate-1.3.zip',
+        'url': 'https://github.com/siikamiika/unidic-mecab-translate/releases/download/1.2/unidic-mecab-translate-1.2.zip',
         'compression': 'zip',
         'size': '191M',
         'description': 'A dictionary that prefers shorter words to longer ones, is usually more accurate, and shows pronunciation instead of reading',
