@@ -110,7 +110,7 @@ class Mecab:
                     parsed_part = {}
                     try:
                         parsed_part['source'], output_part_info = output_part.split('\t', 1)
-                        output_part_info_parsed = ['' if i == '*'
+                        output_part_info_parsed = [None if i == '*'
                                                    else re.sub(Mecab.skip_patt, '', i.split('-')[0])
                                                    for i in output_part_info.split(',')]
                         parsed_part.update(zip(self.dictionary, output_part_info_parsed))
@@ -121,10 +121,10 @@ class Mecab:
         return parsed_lines
 
     def gen_dummy_output(self, text):
-        output = {'source': text, 'expression': text, 'reading': text}
+        output = {'source': text, 'expression': None, 'reading': None}
         for key in self.dictionary:
             if key not in output:
-                output[key] = ''
+                output[key] = None
         return output
 
     def bg_handle_stdout(self):
