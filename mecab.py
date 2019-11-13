@@ -27,8 +27,10 @@ import subprocess
 import threading
 if sys.version_info[0] == 3:
     import queue
+    from itertools import zip_longest
 elif sys.version_info[0] == 2:
     import Queue as queue
+    from itertools import izip_longest as zip_longest
 
 DIR = os.path.realpath(os.path.dirname(__file__))
 
@@ -113,7 +115,7 @@ class Mecab:
                         output_part_info_parsed = [None if i == '*'
                                                    else re.sub(Mecab.skip_patt, '', i.split('-')[0])
                                                    for i in output_part_info.split(',')]
-                        parsed_part.update(zip(self.dictionary, output_part_info_parsed))
+                        parsed_part.update(zip_longest(self.dictionary, output_part_info_parsed))
                         parsed_line.append(parsed_part)
                     except Exception as e:
                         print(e, file=sys.stderr)
@@ -121,7 +123,7 @@ class Mecab:
         return parsed_lines
 
     def gen_dummy_output(self, text):
-        output = {'source': text, 'expression': None, 'reading': None}
+        output = {'source': text}
         for key in self.dictionary:
             if key not in output:
                 output[key] = None
