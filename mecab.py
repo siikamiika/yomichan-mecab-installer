@@ -81,11 +81,16 @@ class Mecab:
         ],
     }
     skip_patt = u'[\s\u30fb]'
+    executable = (
+        os.path.join(os.getenv("programfiles(x86)"), 'MeCab', 'bin', 'mecab.exe')
+        if os.name == 'nt'
+        else 'mecab'
+    )
 
     def __init__(self, dictionary_name):
         self.dictionary_name = dictionary_name
         self.dictionary = Mecab.dictionaries[dictionary_name]
-        args = ['mecab', '-d', os.path.join(DIR, 'data', dictionary_name), '-r', os.path.join(DIR, 'mecabrc')]
+        args = [Mecab.executable, '-d', os.path.join(DIR, 'data', dictionary_name), '-r', os.path.join(DIR, 'mecabrc')]
         self.process = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,

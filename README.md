@@ -11,7 +11,8 @@ If you are running Mac, first install [Homebrew](https://brew.sh/), as it is use
     - **Windows**: https://www.python.org/downloads/
     - **Mac**: Python 2 is deprecated and will be removed in 10.16. To install Python 3, run `brew install python3`
     - **Linux**: Python is usually included with a Linux distribution
-1. If you aren't using Windows, install MeCab separately
+1. Install MeCab
+    - **Windows**: https://taku910.github.io/mecab/#download (mecab-x.xxx.exe:ダウンロード)
     - **Mac**: run `brew install mecab`
     - **Linux**: package managers usually include MeCab. You don't need to install a dictionary package from the package manager, this script downloads the required dictionaries for you
 1. [Download](https://github.com/siikamiika/yomichan-mecab-installer/archive/master.zip) and extract this repository
