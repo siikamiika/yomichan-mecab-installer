@@ -176,7 +176,12 @@ def main():
     mecabs = MecabOrchestrator()
     while True:
         msg = get_message()
-        if msg['action'] == 'parse_text':
+        if msg['action'] == 'get_version':
+            send_message({
+                'sequence': msg['sequence'],
+                'data': {'version': 1},
+            })
+        elif msg['action'] == 'parse_text':
             text = msg['params']['text']
             dictionaries = msg['params'].get('dictionaries')
             response = mecabs.parse(text, dictionaries)
