@@ -50,6 +50,10 @@ BROWSER_DATA = {
         'extension_id_key': 'allowed_origins',
         'extension_ids': ['chrome-extension://ogmnaimimemjmbakcfefmnahgdfhfami/'],
     },
+    'edge': {
+        'extension_id_key': 'allowed_origins',
+        'extension_ids': ['chrome-extension://ogmnaimimemjmbakcfefmnahgdfhfami/'],
+    },
 }
 
 PLATFORM_DATA = {
@@ -86,6 +90,11 @@ PLATFORM_DATA = {
             'chromium': {
                 'methods': ['file', 'registry'],
                 'path': DIR,
+            },
+            'edge': {
+                'methods': ['file', 'registry'],
+                'path': DIR,
+                'registry_path': 'SOFTWARE\\Microsoft\\Edge\\NativeMessagingHosts\\{}'.format(NAME),
             },
         }
     },
@@ -165,7 +174,7 @@ def main():
     platform_data = platform_data_get()
 
     # choose browser
-    browsers = list(BROWSER_DATA)
+    browsers = list(platform_data['manifest_install_data'].keys())
     for i, browser in enumerate(browsers):
         print('{}: {}'.format(i + 1, browser))
     browser = browsers[int(input('Choose browser: ')) - 1]
