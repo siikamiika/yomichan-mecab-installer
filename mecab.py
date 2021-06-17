@@ -81,16 +81,11 @@ class Mecab:
         ],
     }
     skip_patt = u'[\s\u30fb]'
-    executable = (
-        os.path.join(os.getenv("programfiles(x86)"), 'MeCab', 'bin', 'mecab.exe')
-        if os.name == 'nt'
-        else 'mecab'
-    )
 
     def __init__(self, dictionary_name):
         self.dictionary_name = dictionary_name
         self.dictionary = Mecab.dictionaries[dictionary_name]
-        args = [Mecab.executable, '-d', os.path.join(DIR, 'data', dictionary_name), '-r', os.path.join(DIR, 'mecabrc')]
+        args = [self.get_executable_path(), '-d', os.path.join(DIR, 'data', dictionary_name), '-r', os.path.join(DIR, 'mecabrc')]
         self.process = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -102,6 +97,34 @@ class Mecab:
         self.stdout_thread = threading.Thread(target=self.bg_handle_stdout)
         self.stdout_thread.daemon = True
         self.stdout_thread.start()
+
+    def get_executable_path(self):
+        if os.name == 'nt':
+            return self.get_nt_executable_path()
+        return 'mecab'
+
+    def get_nt_executable_path(self):
+        # look up from registry
+        if sys.version_info[0] == 3:
+            import winreg
+        elif sys.version_info[0] == 2:
+            import _winreg as winreg
+        try:
+            reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'SOFTWARE\\MeCab', 0, winreg.KEY_READ)
+            path, _ = winreg.QueryValueEx(reg_key, 'mecabrc')
+            for _ in range(2):
+                path = os.path.dirname(path)
+            path = os.path.join(path, 'bin', 'mecab.exe')
+            if os.path.isfile(path):
+                return path
+        except OSError:
+            pass
+        # look up from program files
+        path = os.path.join(os.getenv("programfiles(x86)"), 'MeCab', 'bin', 'mecab.exe')
+        if os.path.isfile(path):
+            return path
+        # assume it exists in %PATH%
+        return 'mecab.exe'
 
     def parse(self, text):
         parsed_lines = []
