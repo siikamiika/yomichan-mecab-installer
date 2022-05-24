@@ -54,6 +54,10 @@ BROWSER_DATA = {
         'extension_id_key': 'allowed_origins',
         'extension_ids': ['chrome-extension://ogmnaimimemjmbakcfefmnahgdfhfami/'],
     },
+    'brave': {
+        'extension_id_key': 'allowed_origins',
+        'extension_ids': ['chrome-extension://ogmnaimimemjmbakcfefmnahgdfhfami/'],
+    },
 }
 
 PLATFORM_DATA = {
@@ -71,6 +75,10 @@ PLATFORM_DATA = {
             'chromium': {
                 'methods': ['file'],
                 'path': os.path.expanduser('~/.config/chromium/NativeMessagingHosts/'),
+            },
+            'brave': {
+                'methods': ['file'],
+                'path': os.path.expanduser('~/.config/brave-browser/NativeMessagingHosts/'),
             },
         }
     },
@@ -96,6 +104,11 @@ PLATFORM_DATA = {
                 'path': DIR,
                 'registry_path': 'SOFTWARE\\Microsoft\\Edge\\NativeMessagingHosts\\{}'.format(NAME),
             },
+            'brave': {
+                'methods': ['file', 'registry'],
+                'path': DIR,
+                'registry_path': 'SOFTWARE\\BraveSoftware\\Brave-Browser\\NativeMessagingHosts\\{}'.format(NAME),
+            },
         }
     },
     'mac': {
@@ -112,6 +125,10 @@ PLATFORM_DATA = {
             'chromium': {
                 'methods': ['file'],
                 'path': os.path.expanduser('~/Library/Application Support/Chromium/NativeMessagingHosts/'),
+            },
+            'brave': {
+                'methods': ['file'],
+                'path': os.path.expanduser('~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/'),
             },
         }
     },
